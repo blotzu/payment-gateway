@@ -1,0 +1,52 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+
+        <form id="checkout-form" action="" method="post" class="col-md-12">
+            {% if formErrors.order is defined %}<div class="alert alert-danger" role="alert">Error: {{formErrors.order}}</div>{% endif %}
+
+            <div class="form-group">
+                <label for="name">Credit card holder name</label>
+                <input type="text" class="form-control" name="name" id="name" value="{{formValues.name}}" />
+            </div>
+            {% if formErrors.name is defined %}<div class="alert alert-danger" role="alert">Error: {{formErrors.name}}</div>{% endif %}
+
+            <div class="form-group">
+                <label for="number">Credit card number</label>
+                <input type="text" class="form-control" name="number" id="number" value="{{formValues.number}}" />
+            </div>
+            {% if formErrors.number is defined %}<div class="alert alert-danger" role="alert">Error: {{formErrors.number}}</div>{% endif %}
+
+            <div class="form-group clearfix">
+                <div class="clearfix">
+                    <label for="expiration">Credit card expiration</label>
+                </div>
+                <div class="row col-md-6">
+                    <select class="form-control" id="expire_month" name="expire_month">
+                    {% for month in months %}
+                        <option value="{{month}}"{% if currency == formValues.expire_month %} selected{% endif %}>{{month}}</option>
+                    {% endfor %}
+                    </select>
+                </div>
+                <div class="row col-md-6">
+                    <select class="form-control" id="expire_year" name="expire_year">
+                    {% for year in years %}
+                        <option value="{{year}}"{% if currency == formValues.expire_year %} selected{% endif %}>{{year}}</option>
+                    {% endfor %}
+                    </select>
+                </div>
+            </div>
+            {% if formErrors.expiration is defined %}<div class="alert alert-danger" role="alert">Error: {{formErrors.expiration}}</div>{% endif %}
+
+            <div class="form-group">
+                <label for="cvv">CVV</label>
+                <input type="text" class="form-control" name="cvv" id="cvv" value="{{formValues.cvv}}" />
+            </div>
+            {% if formErrors.cvv is defined %}<div class="alert alert-danger" role="alert">Error: {{formErrors.cvv}}</div>{% endif %}
+
+            <div class="form-group">
+                <input type="submit" class="btn-alt form-control" name="submit" id="submit" />
+            </div>
+        </form>
+
+{% endblock %}

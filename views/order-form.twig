@@ -1,0 +1,35 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+
+        <form id="checkout-form" action="" method="post">
+            {% if formErrors.order is defined %}<div class="alert alert-danger" role="alert">Error: {{formErrors.order}}</div>{% endif %}
+
+            <div class="form-group">
+                <label for="price">Price</label>
+                <input type="text" class="form-control" name="price" id="price" value="{{formValues.price}}" />
+            </div>
+            {% if formErrors.price is defined %}<div class="alert alert-danger" role="alert">Error: {{formErrors.price}}</div>{% endif %}
+
+            <div class="form-group">
+                <label for="currency">Currency</label>
+                <select class="form-control" id="currency" name="currency">
+                {% for currency in currencies %}
+                    <option value="{{currency}}"{% if currency == formValues.currency %} selected{% endif %}>{{currency}}</option>
+                {% endfor %}
+                </select>
+            </div>
+            {% if formErrors.currency is defined %}<div class="alert alert-danger" role="alert">Error: {{formErrors.currency}}</div>{% endif %}
+
+            <div class="form-group">
+                <label for="name">Customer Full name</label>
+                <input type="text" class="form-control" name="name" id="name" value="{{formValues.name}}" />
+            </div>
+            {% if formErrors.name is defined %}<div class="alert alert-danger" role="alert">Error: {{formErrors.name}}</div>{% endif %}
+
+            <div class="form-group">
+                <input type="submit" class="btn-alt form-control" name="submit" id="submit" />
+            </div>
+        </form>
+
+{% endblock %}

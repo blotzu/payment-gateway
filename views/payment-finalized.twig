@@ -1,0 +1,18 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+
+        <div>
+            {% if errors.length %}
+            <div class="alert alert-danger" role="alert">Error:
+                {% for error in errors %}{{error}}<br />{% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-success" role="alert">Payment success</div>
+            {% endif %}
+
+            <a href="/order-form">Back to the order form</a>
+
+        </div>
+
+{% endblock %}

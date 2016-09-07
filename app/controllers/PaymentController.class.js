@@ -1,7 +1,6 @@
 'use strict';
 
 let imports = {
-    'httpStatusCodes' : require('http-status-codes'),
     'trim' : require('trim'),
     'BaseController' : require(__commonPath + '/lib/BaseController.class.js'),
     'PaymentDetails' : require(__commonPath + '/lib/PaymentDetails.class.js'),
@@ -39,46 +38,86 @@ module.exports = class PaymentContoller extends imports.BaseController {
         });
     }
 
-    getOrderDetails(req) {
+    getOrderDetails(req, callback) {
         // validate the orderId
         let orderId = parseInt(req.query.orderId) || 0;
         if (!orderId) {
-            return null;
+            console.log("Missing order id");
+            return setImmediate(() => callback());
         }
 
         if (!req.session.orderIds || req.session.orderIds.indexOf(orderId) < 0) {
-            return null;
+            console.log(`Order ${orderId} does not belong to this user`);
+            return setImmediate(() => callback());
         }
 
-        // get the order
-        return {
-            'id' : orderId,
-            'amount' : 10
-        }
+        return imports.services.orderRepository()
+            .findById(orderId)
+            .then((order) => {
+                if (!order) {
+                    return callback(`Could not find order`);
+                }
+                return callback(null, order);
+            })
+            .catch((err) => {
+                console.error(`Could not get order details`);
+                console.error(err);
+                return callback(err);
+            });
     }
 
     paymentForm(req, res) {
-        let order = this.getOrderDetails(req);
-        if (!order) {
-            return res.redirect('/order-form');
-        }
+        this.getOrderDetails(req, (err, order) => {
+            if (err || !order) {
+                return res.redirect('/order-form');
+            }
 
-        // pre-select the date
-        this.formValues['expire_month'] = this.months[0];
-        this.formValues['expire_year'] = this.years[0];
+            // pre-select the date
+            this.formValues['expire_month'] = this.months[0];
+            this.formValues['expire_year'] = this.years[0];
 
-        return this.render(res);
+            return this.render(res);
+        });
     }
 
     paymentFormSubmit(req, res) {
-        let order = this.getOrderDetails(req);
-        if (!order) {
-            return res.redirect('/order-form');
-        }
+        this.getOrderDetails(req, (err, order) => {
+            if (err || !order) {
+                return res.redirect('/order-form');
+            }
 
+            return this.processPaymentForm(req, res, order);
+        });
+    }
+
+    processPaymentForm(req, res, order) {
         // valudate the form data
         let postValues = req.body;
 
+        this.validatePostValues(postValues);
+
+        if (Object.keys(this.formErrors).length) {
+            return this.render(res);
+        }
+
+        let paymentDetails = new imports.PaymentDetails({
+            'amount' : order['price'],
+            'currency' : order['currency'],
+            'name' : this.formValues['name'],
+            'number' : this.formValues['number'],
+            'expire_month' : this.formValues['expire_month'],
+            'expire_year' : this.formValues['expire_year'],
+            'cvv' : this.formValues['cvv'],
+        });
+
+        //send the payment
+        imports.services.gateway().pay(
+            paymentDetails,
+            (err, gatewayResponse) => this.processGatewayResponse(res, err, gatewayResponse)
+        );
+    }
+
+    validatePostValues(postValues) {
         let name = imports.trim(postValues.name || '');
         if (name == '') {
             this.formErrors['name'] = 'Please enter a valid name';
@@ -113,28 +152,43 @@ module.exports = class PaymentContoller extends imports.BaseController {
         } else {
             this.formValues['cvv'] = cvv;
         }
+    }
 
-        if (Object.keys(this.formErrors).length) {
-            return this.render(res);
-        }
-
-        let paymentDetails = new imports.PaymentDetails({
-            'amount' : 10,
-            'currency' : 'USD',
-            'name' : this.formValues['name'],
-            'number' : this.formValues['number'],
-            'expire_month' : this.formValues['expire_month'],
-            'expire_year' : this.formValues['expire_year'],
-            'cvv' : this.formValues['cvv'],
-        });
-
-        //send the payment
-        imports.services.gateway().pay(paymentDetails, (err, response) => {
+    processGatewayResponse(res, err, gatewayResponse) {
+        // there usually is a response from the gateway even if there is an error
+        if (gatewayResponse) {
+            imports.services.transactionRepository()
+                .create(order['id'], JSON.stringify(gatewayResponse))
+                .then((transactionId) => {
+                    if (err) {
+                        return this.returnPaymentError(res, err);
+                    }
+                    return this.returnPaymentSuccess(res, err);
+                })
+                .catch((err) => {
+                    return this.returnPaymentError(res, err);
+                });
+        } else {
             if (err) {
-                //return res.redirect('/payment-finalized?success=1');
-                return res.send(err);
+                return this.returnPaymentError(res, err);
+            } else {
+                return this.returnPaymentSuccess(res, err);
             }
-            return res.redirect('/payment-finalized?success=1');
+        }
+    }
+
+    returnPaymentError(res, err) {
+        return res.redirect('/payment-finalized?error='+err);
+    }
+
+    returnPaymentSuccess(res) {
+        return res.redirect('/payment-finalized?success=1');
+    }
+
+    paymentFinalized(req, res) {
+        return res.render('payment-finalized.twig', {
+            'errors' : req.query.error.split("\n"),
+            'success' : req.query.success === '1' ? true : false
         });
     }
 }

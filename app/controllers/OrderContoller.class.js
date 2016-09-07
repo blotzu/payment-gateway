@@ -50,20 +50,20 @@ module.exports = class OrderContoller extends imports.BaseController {
         }
 
         // proceed with the order
-        let order = new imports.Order();
-        order.create(price, currency, name, (err, orderId) => {
-            if (err) {
+        imports.services.orderRepository()
+            .create(price, currency, name)
+            .then((orderId) => {
+                // set the order id in the allowed list
+                if (!req.session.orderIds) {
+                    req.session.orderIds = [];
+                }
+                req.session.orderIds.push(orderId);
+
+                return res.redirect('/payment-form?orderId='+orderId);
+            }).catch((err) => {
                 this.formErrors['order'] = 'Could not create order';
                 return this.render(res);
-            }
-            // set the order id in the allowed list
-            if (!req.session.orderIds) {
-                req.session.orderIds = [];
-            }
-            req.session.orderIds.push(orderId);
-
-            return res.redirect('/payment-form?orderId='+orderId);
-        });
+            });
     }
 
     render(res) {
@@ -74,4 +74,3 @@ module.exports = class OrderContoller extends imports.BaseController {
         });
     }
 }
-

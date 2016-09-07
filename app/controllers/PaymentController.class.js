@@ -39,19 +39,6 @@ module.exports = class PaymentContoller extends imports.BaseController {
         });
     }
 
-    paymentForm(req, res) {
-        let order = this.getOrderDetails(req);
-        if (!order) {
-            return res.redirect('/order-form');
-        }
-
-        // pre-select the date
-        this.formValues['expire_month'] = this.months[0];
-        this.formValues['expire_year'] = this.years[0];
-
-        return this.render(res);
-    }
-
     getOrderDetails(req) {
         // validate the orderId
         let orderId = parseInt(req.query.orderId) || 0;
@@ -68,6 +55,19 @@ module.exports = class PaymentContoller extends imports.BaseController {
             'id' : orderId,
             'amount' : 10
         }
+    }
+
+    paymentForm(req, res) {
+        let order = this.getOrderDetails(req);
+        if (!order) {
+            return res.redirect('/order-form');
+        }
+
+        // pre-select the date
+        this.formValues['expire_month'] = this.months[0];
+        this.formValues['expire_year'] = this.years[0];
+
+        return this.render(res);
     }
 
     paymentFormSubmit(req, res) {
@@ -120,6 +120,7 @@ module.exports = class PaymentContoller extends imports.BaseController {
 
         let paymentDetails = new imports.PaymentDetails({
             'amount' : 10,
+            'currency' : 'USD',
             'name' : this.formValues['name'],
             'number' : this.formValues['number'],
             'expire_month' : this.formValues['expire_month'],

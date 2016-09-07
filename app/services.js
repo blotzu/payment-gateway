@@ -18,8 +18,8 @@ let services = {
             let gateway = new _class();
 
             // add payment plugins
-            gateway.addClientPlugin(services.paymentPluginBraintree());
             gateway.addClientPlugin(services.paymentPluginPaypal());
+            gateway.addClientPlugin(services.paymentPluginBraintree());
             return gateway;
         });
     },
@@ -59,11 +59,26 @@ let services = {
     /**
      * Paypal services
      */
+    'gatewayPaypal' : function() {
+        let paypal = require("paypal-rest-sdk");
+        paypal.configure(services.config()['gateway']['paypal']);
+        return paypal;
+    },
+
+    'clientPaypal' : function() {
+        return this.getService(this.name, () => {
+            let _class = require(__commonPath + '/lib/PaymentGateway/Client/ClientPaypal.class.js');
+            return new _class({
+                'gateway' : services.gatewayPaypal()
+            });
+        });
+    },
+
     'paymentPluginPaypal' : function() {
         return this.getService(this.name, () => {
             let _class = require(__commonPath + '/lib/PaymentGateway/Plugin/PluginPaypal.class.js');
             return new _class({
-                //'gateway' : services.clientBraintree()
+                'client' : services.clientPaypal()
             });
         });
     },

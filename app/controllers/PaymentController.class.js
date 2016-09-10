@@ -60,8 +60,8 @@ module.exports = class PaymentContoller extends imports.BaseController {
                 return callback(null, order);
             })
             .catch((err) => {
-                console.error(`Could not get order details`);
-                console.error(err);
+                console.log(`Could not get order details`);
+                console.log(err);
                 return callback(err);
             });
     }

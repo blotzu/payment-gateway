@@ -67,7 +67,6 @@ describe('/payment-form', function() {
             beforeEach(function() {
                 newOrderRepository = {};
                 oldOrderRepository = imports.services.orderRepository();
-                // set the currencies
                 imports.services.setService('orderRepository', newOrderRepository);
             });
             afterEach(function() {
@@ -196,6 +195,215 @@ describe('/payment-form', function() {
 
                 done();
             });
+        });
+    });
+
+    describe('processPaymentForm', function() {
+        imports.leche.withData({
+            'form errors' : [
+                {'key' : 'value'}
+            ],
+        }, function(formErrors) {
+            it('render when validation fails', function(done) {
+                let controller = new imports.PaymentController({});
+                controller.render = imports.sinon.spy(function(){});
+                controller.validatePostValues = imports.sinon.spy(function(){
+                    this.formErrors = formErrors;
+                });
+
+                let req = {};
+                let res = {};
+                controller.processPaymentForm(req, res);
+
+                controller.render.callCount.should.eql(1);
+
+                done();
+            });
+        });
+
+        imports.leche.withData({
+            'no errors' : [
+                {},
+                {},
+                {}
+            ],
+        }, function(req, res, order) {
+            let newGateway;
+            let oldGateway;
+
+            beforeEach(function() {
+                newGateway = {};
+                oldGateway = imports.services.gateway();
+                imports.services.setService('gateway', newGateway);
+            });
+            afterEach(function() {
+                imports.services.setService('gateway', oldGateway);
+            });
+
+            it('pay on success', function(done) {
+                newGateway.pay = imports.sinon.spy(function(){});
+
+                let controller = new imports.PaymentController({});
+                controller.validatePostValues = imports.sinon.spy(function(){});
+
+                controller.processPaymentForm(req, res, order);
+
+                newGateway.pay.callCount.should.eql(1);
+
+                done();
+            });
+        });
+    });
+
+    describe('processGatewayResponse', function() {
+        imports.leche.withData({
+            'transaction error - no response' : [
+                {},
+                'some errors',
+                null
+            ],
+            'transaction error - with response' : [
+                {},
+                'some errors',
+                {}
+            ],
+        }, function(order, err, gatewayResponse) {
+            let newTransactionRepository;
+            let oldTransactionRepository;
+
+            beforeEach(function() {
+                newTransactionRepository = {};
+                oldTransactionRepository = imports.services.gateway();
+                imports.services.setService('transactionRepository', newTransactionRepository);
+            });
+            afterEach(function() {
+                imports.services.setService('transactionRepository', oldTransactionRepository);
+            });
+
+            it('return error on transcation error', function(done) {
+                newTransactionRepository.create = imports.sinon.spy(function(){ return newTransactionRepository; });
+                newTransactionRepository.then = imports.sinon.spy(function(cb){ cb(); return newTransactionRepository; });
+                newTransactionRepository.catch = imports.sinon.spy(function(){ return newTransactionRepository; });
+
+                let controller = new imports.PaymentController({});
+                controller.returnPaymentError = imports.sinon.spy(function(){});
+                controller.returnPaymentSuccess = imports.sinon.spy(function(){});
+
+                let res = {};
+                controller.processGatewayResponse(res, order, err, gatewayResponse);
+
+                controller.returnPaymentError.callCount.should.eql(1);
+
+                done();
+            });
+        });
+
+        imports.leche.withData({
+            'transaction error - with response' : [
+                {},
+                'some errors',
+                {}
+            ],
+        }, function(order, err, gatewayResponse) {
+            let newTransactionRepository;
+            let oldTransactionRepository;
+
+            beforeEach(function() {
+                newTransactionRepository = {};
+                oldTransactionRepository = imports.services.gateway();
+                imports.services.setService('transactionRepository', newTransactionRepository);
+            });
+            afterEach(function() {
+                imports.services.setService('transactionRepository', oldTransactionRepository);
+            });
+
+            it('return error on create error', function(done) {
+                newTransactionRepository.create = imports.sinon.spy(function(){ return newTransactionRepository; });
+                newTransactionRepository.then = imports.sinon.spy(function(){ return newTransactionRepository; });
+                newTransactionRepository.catch = imports.sinon.spy(function(cb){ cb('some err'); return newTransactionRepository; });
+
+                let controller = new imports.PaymentController({});
+                controller.returnPaymentError = imports.sinon.spy(function(){});
+                controller.returnPaymentSuccess = imports.sinon.spy(function(){});
+
+                let res = {};
+                controller.processGatewayResponse(res, order, err, gatewayResponse);
+
+                controller.returnPaymentError.callCount.should.eql(1);
+
+                done();
+            });
+        });
+
+        imports.leche.withData({
+            'transaction success - no payload' : [
+                {},
+                null,
+                {}
+            ],
+            'transaction error - with response' : [
+                {},
+                null,
+                {}
+            ],
+        }, function(order, err, gatewayResponse) {
+            let newTransactionRepository;
+            let oldTransactionRepository;
+
+            beforeEach(function() {
+                newTransactionRepository = {};
+                oldTransactionRepository = imports.services.gateway();
+                imports.services.setService('transactionRepository', newTransactionRepository);
+            });
+            afterEach(function() {
+                imports.services.setService('transactionRepository', oldTransactionRepository);
+            });
+
+            it('return error on transcation error', function(done) {
+                newTransactionRepository.create = imports.sinon.spy(function(){ return newTransactionRepository; });
+                newTransactionRepository.then = imports.sinon.spy(function(cb){ cb(); return newTransactionRepository; });
+                newTransactionRepository.catch = imports.sinon.spy(function(){ return newTransactionRepository; });
+
+                let controller = new imports.PaymentController({});
+                controller.returnPaymentError = imports.sinon.spy(function(){});
+                controller.returnPaymentSuccess = imports.sinon.spy(function(){});
+
+                let res = {};
+                controller.processGatewayResponse(res, order, err, gatewayResponse);
+
+                controller.returnPaymentSuccess.callCount.should.eql(1);
+
+                done();
+            });
+        });
+
+    });
+
+    describe('returnPaymentError', function() {
+        it('should redirect', function(done) {
+            let controller = new imports.PaymentController({});
+
+            let res = {
+                'redirect' : imports.sinon.spy(function(path){
+                    imports.should(path.match('error') !== null).eql(true);
+                    done();
+                })
+            };
+            controller.returnPaymentError(res, '');
+        });
+    });
+
+    describe('returnPaymentSuccess', function() {
+        it('should redirect', function(done) {
+            let controller = new imports.PaymentController({});
+
+            let res = {
+                'redirect' : imports.sinon.spy(function(path){
+                    imports.should(path.match('success') !== null).eql(true);
+                    done();
+                })
+            };
+            controller.returnPaymentSuccess(res);
         });
     });
 });

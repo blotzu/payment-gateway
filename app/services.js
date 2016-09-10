@@ -9,6 +9,8 @@ let services = {
         }
         let service = callback();
         serviceMap[name] = service;
+
+        return service;
     },
     setService : function(name, service) {
         serviceMap[name] = service;

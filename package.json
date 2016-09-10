@@ -21,6 +21,7 @@
     "sinon": "^1.17.5"
   },
   "scripts": {
-    "coverage": "bin/istanbul cover bin/_mocha -- tests/ --recursive"
+    "coverage": "bin/istanbul cover bin/_mocha -- tests/ --recursive",
+    "test": "bin/mocha --recursive tests/"
   }
 }

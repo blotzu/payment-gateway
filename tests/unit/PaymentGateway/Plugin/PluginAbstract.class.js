@@ -14,6 +14,18 @@ let imports = {
 describe('PluginAbstract', function() {
     let client = {};
 
+    describe('constructor', function() {
+        it('should require a client', function(done) {
+            try{
+                let plugin = new imports.PluginAbstract();
+                imports.should(false).equal(true);
+            }catch(e){
+                imports.should(e).be.an.instanceOf(Error);
+            }
+            done();
+        });
+    });
+
     describe('getClientName', function() {
         it('should throw an exception', function(done) {
             let plugin = new imports.PluginAbstract({

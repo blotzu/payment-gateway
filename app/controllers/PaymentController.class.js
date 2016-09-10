@@ -106,6 +106,10 @@ module.exports = class PaymentContoller extends imports.BaseController {
             return this.render(res);
         }
 
+        // make sure that the order cannot be resumes
+        let orderIndex = req.session.orderIds.indexOf(order['id']);
+        req.session.orderIds.splice(orderIndex, 1);
+
         let paymentDetails = new imports.PaymentDetails({
             'amount' : order['price'],
             'currency' : order['currency'],

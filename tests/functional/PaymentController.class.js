@@ -223,9 +223,15 @@ describe('/payment-form', function() {
 
         imports.leche.withData({
             'no errors' : [
+                {
+                    'session' : {
+                        'orderIds' : [1]
+                    }
+                },
                 {},
-                {},
-                {}
+                {
+                    'id' : 1
+                }
             ],
         }, function(req, res, order) {
             let newGateway;

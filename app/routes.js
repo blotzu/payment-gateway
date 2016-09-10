@@ -1,18 +1,18 @@
 'use strict';
 
 let imports = {
-    'OrderContoller' : require(__commonPath + '/app/controllers/OrderContoller.class.js'),
+    'OrderController' : require(__commonPath + '/app/controllers/OrderController.class.js'),
     'PaymentController' : require(__commonPath + '/app/controllers/PaymentController.class.js'),
 };
 
 module.exports = function(app) {
     // the order form
     app.get('/order-form', (req, res) => {
-        let controller = new imports.OrderContoller(app);
+        let controller = new imports.OrderController(app);
         return controller.orderForm(req, res);
     });
     app.post('/order-form', (req, res) => {
-        let controller = new imports.OrderContoller(app);
+        let controller = new imports.OrderController(app);
         return controller.orderFormSubmit(req, res);
     });
 

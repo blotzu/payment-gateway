@@ -17,12 +17,44 @@ module.exports = class OrderContoller extends imports.BaseController {
         this.currencies = imports.services.config()['order']['currencies'];
     }
 
+    getFormValues() {
+        return this.formValues;
+    }
+
+    getFormErrors() {
+        return this.formErrors;
+    }
+
     orderForm(req, res) {
         return this.render(res);
     }
 
     orderFormSubmit(req, res) {
-        let postValues = req.body;
+        // validate the form data
+        this.validatePostValues(req.body);
+
+        if (Object.keys(this.formErrors).length) {
+            return this.render(res);
+        }
+
+        // proceed with the order
+        imports.services.orderRepository()
+            .create(this.formValues['price'], this.formValues['currency'], this.formValues['name'])
+            .then((orderId) => {
+                // set the order id in the allowed list
+                if (!req.session.orderIds) {
+                    req.session.orderIds = [];
+                }
+                req.session.orderIds.push(orderId);
+
+                return res.redirect('/payment-form?orderId='+orderId);
+            }).catch((err) => {
+                this.formErrors['order'] = 'Could not create order';
+                return this.render(res);
+            });
+    }
+
+    validatePostValues(postValues) {
         let price = parseFloat(postValues.price);
         if (isNaN(price) || price <= 0){
             this.formErrors['price'] = 'Please enter a valid price';
@@ -43,26 +75,6 @@ module.exports = class OrderContoller extends imports.BaseController {
         } else {
             this.formValues['name'] = name;
         }
-
-        if (Object.keys(this.formErrors).length) {
-            return this.render(res);
-        }
-
-        // proceed with the order
-        imports.services.orderRepository()
-            .create(price, currency, name)
-            .then((orderId) => {
-                // set the order id in the allowed list
-                if (!req.session.orderIds) {
-                    req.session.orderIds = [];
-                }
-                req.session.orderIds.push(orderId);
-
-                return res.redirect('/payment-form?orderId='+orderId);
-            }).catch((err) => {
-                this.formErrors['order'] = 'Could not create order';
-                return this.render(res);
-            });
     }
 
     render(res) {

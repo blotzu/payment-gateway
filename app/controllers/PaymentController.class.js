@@ -29,6 +29,14 @@ module.exports = class PaymentContoller extends imports.BaseController {
         this.formErrors = {};
     }
 
+    getFormValues() {
+        return this.formValues;
+    }
+
+    getFormErrors() {
+        return this.formErrors;
+    }
+
     render(res) {
         return res.render('payment-form.twig', {
             'months' : this.months,
@@ -91,10 +99,8 @@ module.exports = class PaymentContoller extends imports.BaseController {
     }
 
     processPaymentForm(req, res, order) {
-        // valudate the form data
-        let postValues = req.body;
-
-        this.validatePostValues(postValues);
+        // validate the form data
+        this.validatePostValues(req.body);
 
         if (Object.keys(this.formErrors).length) {
             return this.render(res);
@@ -129,7 +135,7 @@ module.exports = class PaymentContoller extends imports.BaseController {
         if (number <= 0) {
             this.formErrors['number'] = 'Please enter a valid card number';
         } else {
-            this.formValues['number'] = number;
+            this.formValues['number'] = String(postValues.number).replace(/[^0-9]+/g, '');
         }
 
         let expire_month = postValues.expire_month;
@@ -146,8 +152,8 @@ module.exports = class PaymentContoller extends imports.BaseController {
             this.formValues['expire_year'] = expire_year;
         }
 
-        let cvv = parseInt(postValues.cvv);
-        if (cvv == '') {
+        let cvv = parseInt(postValues.cvv) || 0;
+        if (cvv <= 0) {
             this.formErrors['cvv'] = 'Please enter a valid CVV';
         } else {
             this.formValues['cvv'] = cvv;

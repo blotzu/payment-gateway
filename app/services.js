@@ -7,13 +7,11 @@ let services = {
         if (name in serviceMap) {
             return serviceMap[name];
         }
-        return callback();
+        let service = callback();
+        serviceMap[name] = service;
     },
-    setService : function(name, callback) {
-        if (name in serviceMap) {
-            return serviceMap[name];
-        }
-        return callback();
+    setService : function(name, service) {
+        serviceMap[name] = service;
     },
     'config' : function() {
         return require('../config/config.js');
@@ -23,7 +21,7 @@ let services = {
      * Postgres db client
      */
     'db' : function() {
-        return this.getService(this.name, () => {
+        return this.getService('db', () => {
             let config = services.config();
             let knex = require('knex')({
                 'client': config['db']['client'],
@@ -35,7 +33,7 @@ let services = {
         });
     },
     'orderRepository' : function() {
-        return this.getService(this.name, () => {
+        return this.getService('orderRepository', () => {
             let _class = require(__commonPath + '/lib/OrderRepository.class.js');
             return new _class(
                 services.db(),
@@ -44,7 +42,7 @@ let services = {
         });
     },
     'transactionRepository' : function() {
-        return this.getService(this.name, () => {
+        return this.getService('transactionRepository', () => {
             let _class = require(__commonPath + '/lib/TransactionRepository.class.js');
             return new _class(
                 services.db(),
@@ -57,7 +55,7 @@ let services = {
      * Generic payment gateway class
      */
     'gateway' : function() {
-        return this.getService(this.name, () => {
+        return this.getService('gateway', () => {
             let _class = require(__commonPath + '/lib/PaymentGateway.class.js');
             let gateway = new _class();
 
@@ -72,17 +70,19 @@ let services = {
      * Braintree services
      */
     'gatewayBraintree' : function() {
-        let braintree = require("braintree");
-        let config = services.config()['gateway']['braintree'];
-        return braintree.connect({
-            environment: braintree.Environment.Sandbox,
-            merchantId: config['merchantId'],
-            publicKey: config['publicKey'],
-            privateKey: config['privateKey'],
+        return this.getService('gatewayBraintree', () => {
+            let braintree = require("braintree");
+            let config = services.config()['gateway']['braintree'];
+            return braintree.connect({
+                environment: braintree.Environment.Sandbox,
+                merchantId: config['merchantId'],
+                publicKey: config['publicKey'],
+                privateKey: config['privateKey'],
+            });
         });
     },
     'clientBraintree' : function() {
-        return this.getService(this.name, () => {
+        return this.getService('clientBraintree', () => {
             let _class = require(__commonPath + '/lib/PaymentGateway/Client/ClientBraintree.class.js');
             return new _class({
                 'gateway' : services.gatewayBraintree()
@@ -90,7 +90,7 @@ let services = {
         });
     },
     'paymentPluginBraintree' : function() {
-        return this.getService(this.name, () => {
+        return this.getService('paymentPluginBraintree', () => {
             let _class = require(__commonPath + '/lib/PaymentGateway/Plugin/PluginBraintree.class.js');
             return new _class({
                 'client' : services.clientBraintree()
@@ -102,12 +102,14 @@ let services = {
      * Paypal services
      */
     'gatewayPaypal' : function() {
-        let paypal = require("paypal-rest-sdk");
-        paypal.configure(services.config()['gateway']['paypal']);
-        return paypal;
+        return this.getService('gatewayPaypal', () => {
+            let paypal = require("paypal-rest-sdk");
+            paypal.configure(services.config()['gateway']['paypal']);
+            return paypal;
+        });
     },
     'clientPaypal' : function() {
-        return this.getService(this.name, () => {
+        return this.getService('clientPaypal', () => {
             let _class = require(__commonPath + '/lib/PaymentGateway/Client/ClientPaypal.class.js');
             return new _class({
                 'gateway' : services.gatewayPaypal()
@@ -115,7 +117,7 @@ let services = {
         });
     },
     'paymentPluginPaypal' : function() {
-        return this.getService(this.name, () => {
+        return this.getService('paymentPluginPaypal', () => {
             let _class = require(__commonPath + '/lib/PaymentGateway/Plugin/PluginPaypal.class.js');
             return new _class({
                 'client' : services.clientPaypal()

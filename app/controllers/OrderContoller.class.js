@@ -6,7 +6,6 @@ let imports = {
     'BaseController' : require(__commonPath + '/lib/BaseController.class.js'),
 
     'services' : require(__commonPath + '/app/services.js'),
-    'Order' : require(__commonPath + '/lib/entities/Order.class.js'),
 };
 
 module.exports = class OrderContoller extends imports.BaseController {

@@ -10,7 +10,17 @@
     "knex": "^0.11.10",
     "paypal-rest-sdk": "^1.6.9",
     "pg": "^6.1.0",
+    "should": "^11.1.0",
+    "supertest": "^2.0.0",
     "trim": "0.0.1",
     "twig": "^0.9.5"
+  },
+  "devDependencies": {
+    "istanbul": "^0.4.5",
+    "leche": "^2.1.2",
+    "sinon": "^1.17.5"
+  },
+  "scripts": {
+    "coverage": "bin/istanbul cover bin/_mocha -- tests/ --recursive"
   }
 }

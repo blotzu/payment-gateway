@@ -16,11 +16,21 @@ describe('ClientBraintree', function() {
 
         let details = new imports.PaymentDetails({
             'amount' : 1,
+            'currency' : 'USD',
             'number' : 12323,
             'expire_month' : 1,
             'expire_year' : 2000,
             'cvv' : 123
         });
+
+        let merchantAccounts = {
+            'USD' : 'usd',
+            'EUR' : 'eur',
+            'THB' : 'thb',
+            'HKD' : 'hkd',
+            'SGD' : 'sgd',
+            'AUD' : 'aud'
+        };
 
         describe('sale arguments', function() {
             let gateway = {
@@ -32,6 +42,7 @@ describe('ClientBraintree', function() {
             it('should call sale', function(done) {
                 let client = new imports.ClientBraintree({
                     'gateway' : gateway,
+                    'merchantAccounts' : merchantAccounts
                 });
                 client.pay(details);
 
@@ -42,11 +53,13 @@ describe('ClientBraintree', function() {
             it('should send only string parameters', function(done) {
                 let client = new imports.ClientBraintree({
                     'gateway' : gateway,
+                    'merchantAccounts' : merchantAccounts
                 });
                 client.pay(details);
 
                 gateway.transaction.sale.calledWith({
                     amount: '1',
+                    merchant_account_id: 'usd',
                     creditCard: {
                         number: '12323',
                         expirationMonth: '1',
@@ -73,6 +86,7 @@ describe('ClientBraintree', function() {
 
                 let client = new imports.ClientBraintree({
                     'gateway' : gateway,
+                    'merchantAccounts' : merchantAccounts
                 });
                 client.pay(details, (err, response) => {
                     imports.should(err).not.eql(null);
@@ -92,6 +106,7 @@ describe('ClientBraintree', function() {
 
                 let client = new imports.ClientBraintree({
                     'gateway' : gateway,
+                    'merchantAccounts' : merchantAccounts
                 });
                 client.pay(details, (err, response) => {
                     imports.should(err).eql(gatewayResponse.message);
@@ -119,6 +134,7 @@ describe('ClientBraintree', function() {
 
                 let client = new imports.ClientBraintree({
                     'gateway' : gateway,
+                    'merchantAccounts' : merchantAccounts
                 });
 
                 client.pay(details, (transactionId) => {
@@ -142,6 +158,7 @@ describe('ClientBraintree', function() {
 
                 let client = new imports.ClientBraintree({
                     'gateway' : gateway,
+                    'merchantAccounts' : merchantAccounts
                 });
                 client.setttlePayment(123, (err, response) => {
                     imports.should(err).eql('some error');
@@ -160,6 +177,7 @@ describe('ClientBraintree', function() {
 
                 let client = new imports.ClientBraintree({
                     'gateway' : gateway,
+                    'merchantAccounts' : merchantAccounts
                 });
                 client.setttlePayment(details, (err, response) => {
                     imports.should(err).eql(gatewayResponse.message);

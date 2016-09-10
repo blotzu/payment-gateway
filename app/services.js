@@ -59,7 +59,9 @@ let services = {
     'gateway' : function() {
         return this.getService('gateway', () => {
             let _class = require(__commonPath + '/lib/PaymentGateway.class.js');
-            let gateway = new _class();
+            let gateway = new _class({
+                'amexCurrency' : services.config()['order']['amexCurrency']
+            });
 
             // add payment plugins
             gateway.addClientPlugin(services.paymentPluginPaypal());
@@ -87,7 +89,8 @@ let services = {
         return this.getService('clientBraintree', () => {
             let _class = require(__commonPath + '/lib/PaymentGateway/Client/ClientBraintree.class.js');
             return new _class({
-                'gateway' : services.gatewayBraintree()
+                'gateway' : services.gatewayBraintree(),
+                'merchantAccounts' : services.config()['gateway']['braintree']['merchantAccounts']
             });
         });
     },
@@ -122,7 +125,8 @@ let services = {
         return this.getService('paymentPluginPaypal', () => {
             let _class = require(__commonPath + '/lib/PaymentGateway/Plugin/PluginPaypal.class.js');
             return new _class({
-                'client' : services.clientPaypal()
+                'client' : services.clientPaypal(),
+                'currencies' : services.config()['plugins']['paypal']['currencies']
             });
         });
     },

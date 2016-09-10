@@ -14,7 +14,9 @@ let imports = {
 describe('PaymentGateway', function() {
     describe('addClientPlugin', function() {
         it('should not allow a client to be added twice', function(done) {
-            let gateway = new imports.PaymentGateway();
+            let gateway = new imports.PaymentGateway({
+                'amexCurrency' : 'USD'
+            });
             let client = {
                 'getClientName' : function() { return 'some name'; }
             };
@@ -33,7 +35,9 @@ describe('PaymentGateway', function() {
 
     describe('removeClientPlugin', function() {
         it('should not allow a non-existent client to be removed', function(done) {
-            let gateway = new imports.PaymentGateway();
+            let gateway = new imports.PaymentGateway({
+                'amexCurrency' : 'USD'
+            });
             let client = {
                 'getClientName' : function() { return 'some name'; }
             };
@@ -50,7 +54,9 @@ describe('PaymentGateway', function() {
 
     describe('hasClientPlugin', function() {
         it('should return false if a client exists', function(done) {
-            let gateway = new imports.PaymentGateway();
+            let gateway = new imports.PaymentGateway({
+                'amexCurrency' : 'USD'
+            });
             let client = {
                 'getClientName' : function() { return 'some name'; }
             };
@@ -60,7 +66,9 @@ describe('PaymentGateway', function() {
         });
 
         it('should return true if a client exists', function(done) {
-            let gateway = new imports.PaymentGateway();
+            let gateway = new imports.PaymentGateway({
+                'amexCurrency' : 'USD'
+            });
             let client = {
                 'getClientName' : function() { return 'some name'; }
             };
@@ -74,7 +82,9 @@ describe('PaymentGateway', function() {
 
     describe('pay', function() {
         it('should not allow invalid card / currency combinations', function(done) {
-            let gateway = new imports.PaymentGateway();
+            let gateway = new imports.PaymentGateway({
+                'amexCurrency' : 'USD'
+            });
             let details = new imports.PaymentDetails();
             details.isAmex = function() { return true; }
             details.getCurrency = function() { return 'AUD'; }
@@ -86,7 +96,9 @@ describe('PaymentGateway', function() {
         });
 
         it('should return an error if no plugins exist', function(done) {
-            let gateway = new imports.PaymentGateway();
+            let gateway = new imports.PaymentGateway({
+                'amexCurrency' : 'USD'
+            });
             let details = new imports.PaymentDetails();
 
             gateway.pay(details, (err, response) => {
@@ -96,7 +108,9 @@ describe('PaymentGateway', function() {
         });
 
         it('should return an error if no plugins can handle the payment', function(done) {
-            let gateway = new imports.PaymentGateway();
+            let gateway = new imports.PaymentGateway({
+                'amexCurrency' : 'USD'
+            });
             let details = new imports.PaymentDetails();
             let client = {
                 'getClientName' : function() { return 'some name'; },
@@ -111,7 +125,9 @@ describe('PaymentGateway', function() {
         });
 
         it('should choose the first plugin that can validate the payment', function(done) {
-            let gateway = new imports.PaymentGateway();
+            let gateway = new imports.PaymentGateway({
+                'amexCurrency' : 'USD'
+            });
             let details = new imports.PaymentDetails();
             let pay1 = imports.sinon.spy(function() {});
             let client1 = {

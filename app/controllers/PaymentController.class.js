@@ -51,12 +51,12 @@ module.exports = class PaymentContoller extends imports.BaseController {
         let orderId = parseInt(req.query.orderId) || 0;
         if (!orderId) {
             console.log("Missing order id");
-            return setImmediate(() => callback());
+            return setImmediate(() => callback(null));
         }
 
         if (!req.session.orderIds || req.session.orderIds.indexOf(orderId) < 0) {
             console.log(`Order ${orderId} does not belong to this user`);
-            return setImmediate(() => callback());
+            return setImmediate(() => callback(null));
         }
 
         return imports.services.orderRepository()

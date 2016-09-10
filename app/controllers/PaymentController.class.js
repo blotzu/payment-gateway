@@ -113,7 +113,7 @@ module.exports = class PaymentContoller extends imports.BaseController {
         //send the payment
         imports.services.gateway().pay(
             paymentDetails,
-            (err, gatewayResponse) => this.processGatewayResponse(res, err, gatewayResponse)
+            (err, gatewayResponse) => this.processGatewayResponse(res, order, err, gatewayResponse)
         );
     }
 
@@ -154,11 +154,11 @@ module.exports = class PaymentContoller extends imports.BaseController {
         }
     }
 
-    processGatewayResponse(res, err, gatewayResponse) {
+    processGatewayResponse(res, order, err, gatewayResponse) {
         // there usually is a response from the gateway even if there is an error
         if (gatewayResponse) {
             imports.services.transactionRepository()
-                .create(order['id'], JSON.stringify(gatewayResponse))
+                .create(order['id'], gatewayResponse)
                 .then((transactionId) => {
                     if (err) {
                         return this.returnPaymentError(res, err);
@@ -187,7 +187,7 @@ module.exports = class PaymentContoller extends imports.BaseController {
 
     paymentFinalized(req, res) {
         return res.render('payment-finalized.twig', {
-            'errors' : req.query.error.split("\n"),
+            'errors' : 'error' in req.query ? req.query.error.split("\n") : [],
             'success' : req.query.success === '1' ? true : false
         });
     }
